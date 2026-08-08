@@ -1,0 +1,13 @@
+[package]
+name = "pcms-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pcms-sdk = { path = "../pcms-sdk" }
+uefi = "0.31"
+uefi-services = "0.23"
+
+[[bin]]
+name = "pcms-core"
+path = "src/main.rs"

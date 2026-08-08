@@ -1,0 +1,16 @@
+[workspace]
+members = ["pcms-sdk", "pcms-core"]
+resolver = "2"
+
+[profile.dev]
+panic = "abort"
+lto = false
+opt-level = 0
+
+[profile.release]
+panic = "abort"
+lto = true
+opt-level = "z"
+strip = true
+codegen-units = 1
+debug = false
