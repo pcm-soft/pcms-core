@@ -1,0 +1,37 @@
+[package]
+name = "allocrs"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.74"
+description = "Fixed-capacity no_std arenas for latency-sensitive systems"
+
+[features]
+default = []
+std = []
+checked = []
+loom = ["dep:loom"]
+
+[dependencies]
+loom = { version = "0.7", optional = true }
+
+[dev-dependencies]
+proptest = "1"
+criterion = "0.5"
+
+[[bench]]
+name = "allocator"
+harness = false
+
+[workspace]
+members = ["fuzz"]
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+
+[profile.bench]
+lto = "fat"
+codegen-units = 1
+opt-level = 3

@@ -1,0 +1,19 @@
+[package]
+name = "allocrs-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+allocrs = { path = ".." }
+
+[[bin]]
+name = "handles"
+path = "fuzz_targets/handles.rs"
+test = false
+doc = false
+bench = false

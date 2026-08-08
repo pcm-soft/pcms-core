@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![no_std]
-#![no_main]
 
-mod bus;
-mod timer;
-mod executor;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 
+pub enum AllocError {
+    Full,
+    InvalidHandle,
+    StaleHandle,
+    DoubleFree,
+    GenerationExhausted
+}
