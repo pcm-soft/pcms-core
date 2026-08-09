@@ -6,6 +6,10 @@
       <sourceFolder url="file://$MODULE_DIR$/pcms-sdk/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/pcms-syslib/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/allocrs/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/allocrs/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/allocrs/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/pcms-sdk/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

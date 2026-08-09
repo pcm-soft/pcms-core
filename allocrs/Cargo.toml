@@ -22,9 +22,6 @@ criterion = "0.5"
 name = "allocator"
 harness = false
 
-[workspace]
-members = ["fuzz"]
-
 [profile.release]
 lto = "fat"
 codegen-units = 1

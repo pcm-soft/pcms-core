@@ -1,9 +1,13 @@
 [package]
 name = "pcms-sdk"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+rust-version = "1.74"
+description = "no_std ABI and zero-allocation SDK for the PCMS research kernel"
+
+[features]
+default = []
+std = []
 
 [lib]
-crate-type = ["lib"]
-
-[dependencies]
+crate-type = ["rlib", "staticlib"]

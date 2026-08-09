@@ -1,5 +1,5 @@
 [workspace]
-members = ["pcms-sdk", "pcms-core"]
+members = ["pcms-sdk", "pcms-core", "allocrs"]
 resolver = "2"
 
 [profile.dev]

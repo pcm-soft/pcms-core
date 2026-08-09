@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 pcms-sdk = { path = "../pcms-sdk" }
+allocrs = { path = "../allocrs" }
 
 [[bin]]
 name = "pcms-core"

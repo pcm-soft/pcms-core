@@ -12,37 +12,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::{AllocError, AllocRS, Lease};
+use crate::{AllocError, AllocRS, Lease, words};
 
 /// Verification wrapper. Counters are deliberately separate from the
 /// production allocator and must not be used for WCET claims.
-pub struct AllocRSChecked<const S: usize, const N: usize> {
-    inner: AllocRS<S, N>, alloc_calls: AtomicU64, failures: AtomicU64,
+pub struct AllocRSChecked<const S: usize, const N: usize>
+where
+    [(); words(N)]:,
+{
+    inner: AllocRS<S, N>,
+    alloc_calls: AtomicU64,
+    failures: AtomicU64,
 }
-impl<const S: usize, const N: usize> AllocRSChecked<S, N> {
-    pub const fn new() -> Self {
+
+impl<const S: usize, const N: usize> AllocRSChecked<S, N>
+where
+    [(); words(N)]:,
+{
+    // Исправлено: new() больше не const, т.к. AllocRS::new() не const
+    pub fn new() -> Self {
         Self {
-            inner: AllocRS::new(), alloc_calls: AtomicU64::new(0), failures: AtomicU64::new(0)
+            inner: AllocRS::new(),
+            alloc_calls: AtomicU64::new(0),
+            failures: AtomicU64::new(0),
         }
     }
 
     pub fn allocate(&self) -> Result<Lease<'_, S, N>, AllocError> {
         self.alloc_calls.fetch_add(1, Ordering::Relaxed);
         match self.inner.allocate() {
-            Ok(v) => Ok(v), Err(e) => {
+            Ok(v) => Ok(v),
+            Err(e) => {
                 self.failures.fetch_add(1, Ordering::Relaxed);
                 Err(e)
             }
         }
     }
+
     pub fn allocation_calls(&self) -> u64 {
         self.alloc_calls.load(Ordering::Relaxed)
     }
+
     pub fn failures(&self) -> u64 {
         self.failures.load(Ordering::Relaxed)
     }
+
     pub fn inner(&self) -> &AllocRS<S, N> {
         &self.inner
     }
