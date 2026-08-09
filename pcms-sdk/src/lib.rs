@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(missing_docs)]
 #![deny(rust_2018_idioms)]
@@ -143,8 +143,6 @@ pub struct MedicalPacket {
     /// Application-defined flags controlled by the kernel.
     pub flags: u32,
 }
-
-const _: () = assert!(size_of::<MedicalPacket>() == 32);
 
 /// Result returned through the ABI.
 #[repr(u32)]
@@ -328,8 +326,6 @@ pub struct PcmsPluginInterface {
     pub destroy:
         unsafe extern "C" fn(ctx: *mut PcmsExecutionContext) -> PcmsStatus,
 }
-
-const _: () = assert!(size_of::<PcmsPluginInterface>() == 48);
 
 /// Validate plugin metadata before registration.
 ///

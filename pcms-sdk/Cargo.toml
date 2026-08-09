@@ -10,4 +10,4 @@ default = []
 std = []
 
 [lib]
-crate-type = ["rlib", "staticlib"]
+crate-type = ["lib"]
