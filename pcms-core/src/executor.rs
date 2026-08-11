@@ -29,12 +29,8 @@
 use core::ptr::NonNull;
 
 use pcms_sdk::{
-    validate_packet,
-    validate_plugin_interface,
-    MedicalPacket,
-    PcmsExecutionContext,
-    PcmsPluginInterface,
-    PcmsStatus,
+    validate_packet, validate_plugin_interface, MedicalPacket, PcmsExecutionContext,
+    PcmsPluginInterface, PcmsStatus,
 };
 
 use crate::timer::read_tsc_cycles;
@@ -123,8 +119,7 @@ impl KernelPlugin {
 
         let interface_ref = unsafe { &*interface };
 
-        validate_plugin_interface(interface_ref)
-            .map_err(|_| ExecutorStatus::InvalidPlugin)?;
+        validate_plugin_interface(interface_ref).map_err(|_| ExecutorStatus::InvalidPlugin)?;
 
         Ok(Self {
             interface: unsafe { NonNull::new_unchecked(interface) },
@@ -155,9 +150,7 @@ impl KernelPlugin {
     pub unsafe fn init(&self) -> PcmsStatus {
         let interface = unsafe { self.interface.as_ref() };
 
-        unsafe {
-            (interface.init)(self.context.as_ptr())
-        }
+        unsafe { (interface.init)(self.context.as_ptr()) }
     }
 
     /// Destroy the plugin.
@@ -172,9 +165,7 @@ impl KernelPlugin {
     pub unsafe fn destroy(&self) -> PcmsStatus {
         let interface = unsafe { self.interface.as_ref() };
 
-        unsafe {
-            (interface.destroy)(self.context.as_ptr())
-        }
+        unsafe { (interface.destroy)(self.context.as_ptr()) }
     }
 }
 
@@ -214,9 +205,7 @@ impl KernelExecutor {
     /// target CPU and workload.
     #[inline(always)]
     pub const fn with_limit(hard_limit_cycles: u64) -> Self {
-        Self {
-            hard_limit_cycles,
-        }
+        Self { hard_limit_cycles }
     }
 
     /// Return configured software execution budget.
@@ -264,10 +253,7 @@ impl KernelExecutor {
         let status = unsafe {
             let interface = plugin.interface();
 
-            (interface.execute)(
-                plugin.context(),
-                packet as *mut MedicalPacket,
-            )
+            (interface.execute)(plugin.context(), packet as *mut MedicalPacket)
         };
 
         let end = read_tsc_cycles();
