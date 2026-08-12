@@ -23,7 +23,8 @@
 //! - required alignment;
 //! - padded object size;
 //! - object stride;
-//! - checked address calculations.
+//! - checked and unchecked address calculations with explicit
+//!   overflow contracts.
 //!
 //! This module does not allocate memory and does not access memory.
 //!
@@ -34,8 +35,10 @@
 //! 1. `size > 0`;
 //! 2. `alignment > 0`;
 //! 3. `alignment` is a power of two;
-//! 4. all derived sizes are checked for overflow;
-//! 5. aligned addresses are calculated without undefined behaviour.
+//! 4. derived object sizes are validated for overflow;
+//! 5. checked address operations detect address overflow;
+//! 6. unchecked address operations require the caller to establish
+//!    their overflow preconditions.
 //!
 //! ## Performance
 //!
@@ -126,6 +129,9 @@ impl Layout {
     ///
     /// Returns [`LayoutError::InvalidAlignment`] if `align == 0`
     /// or `align` is not a power of two.
+    ///
+    /// Returns [`LayoutError::SizeOverflow`] if rounding `size` up to
+    /// `align` would overflow `usize`.
     pub const fn new(size: usize, align: usize) -> Result<Self, LayoutError> {
         if size == 0 {
             return Err(LayoutError::ZeroSize);
@@ -166,7 +172,7 @@ impl Layout {
     ///
     /// `mask == align - 1`
     #[inline(always)]
-    pub const fn aling_mask(&self) -> usize {
+    pub const fn align_mask(&self) -> usize {
         self.align_mask
     }
 
@@ -195,10 +201,11 @@ impl Layout {
         (self.size + self.align_mask) & !self.align_mask
     }
 
-    /// Returns the number of bytes between two consecutive objects using
-    /// this layout.
+    /// Returns the byte distance between the starts of two consecutive
+    /// objects having this layout.
     ///
-    /// This is equivalent to [`Layout::padded_size`].
+    /// For the PCMS allocator, every object begins at an address satisfying
+    /// `align`, therefore the object stride is the padded size.
     #[inline(always)]
     pub const fn stride(&self) -> usize {
         self.padded_size()
@@ -224,18 +231,93 @@ impl Layout {
         }
     }
 
-    /// Checks whether `address` can contain the complete padded object.
+    /// Aligns an address upward to this layout's alignment without checking
+    /// for address overflow.
     ///
-    /// This does not access memory. It only verifies the integer address
-    /// range.
+    /// # Preconditions
+    ///
+    /// The caller must guarantee:
+    ///
+    /// `address + self.padding_for(address) <= usize::MAX`.
+    ///
+    /// This function performs no overflow check and is intended for allocator
+    /// hot paths where the address range has already been validated.
+    ///
+    /// Use [`Self::align_up`] when this precondition cannot be guaranteed.
+    #[inline(always)]
+    pub const fn align_up_unchecked(&self, address: usize) -> usize {
+        address + self.padding_for(address)
+    }
+
+    /// Returns the exclusive end address of the padded object.
+    ///
+    /// This function checks that adding the padded object size to `address`
+    /// does not overflow `usize`.
+    ///
+    /// The returned value is the first address immediately after the padded
+    /// object.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`LayoutError::AddressOverflow`] if the end address cannot be
+    /// represented by `usize`.
+    #[inline(always)]
+    pub const fn checked_end(
+      &self,
+      address: usize,
+    ) -> Result<usize, LayoutError> {
+     match address.checked_add(self.padded_size()) {
+           Some(end) => Ok(end),
+           None => Err(LayoutError::AddressOverflow),
+     }
+    }
+
+    /// Returns the exclusive end address of the padded object without checking
+    /// for address overflow.
+    ///
+    /// The object occupies the half-open range:
+    ///
+    /// `[address, address + self.padded_size())`.
+    ///
+    /// # Preconditions
+    ///
+    /// The caller must guarantee:
+    ///
+    /// `address + self.padded_size() <= usize::MAX`.
+    ///
+    /// This function performs no overflow check and is intended for allocator
+    /// hot paths where the address range has already been validated.
+    ///
+    /// Use [`Self::checked_end`] when the address range has not already been
+    /// validated.
+    #[inline(always)]
+    pub const fn end_unchecked(&self, address: usize) -> usize {
+        address + self.padded_size()
+    }
+
+    /// Checks whether the complete padded object fits within a memory region.
+    ///
+    /// The memory region is represented as a half-open range:
+    ///
+    /// `[.., region_end_exclusive)`
+    ///
+    /// The object occupies:
+    ///
+    /// `[address, address + padded_size)`
+    ///
+    /// Returns `true` exactly when the complete object is representable and
+    /// its exclusive end does not exceed `region_end_exclusive`.
+    ///
+    /// Address overflow is treated as failure.
     #[inline(always)]
     pub const fn contains_range(
         &self,
         address: usize,
-    ) -> Result<(), LayoutError> {
+        region_end_exclusive: usize,
+    ) -> bool {
         match address.checked_add(self.padded_size()) {
-            Some(_) => Ok(()),
-            None => Err(LayoutError::AddressOverflow),
+            Some(end) => end <= region_end_exclusive,
+            None => false,
         }
     }
 }
