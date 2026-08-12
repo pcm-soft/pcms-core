@@ -132,6 +132,7 @@ impl Layout {
     ///
     /// Returns [`LayoutError::SizeOverflow`] if rounding `size` up to
     /// `align` would overflow `usize`.
+    #[inline]
     pub const fn new(size: usize, align: usize) -> Result<Self, LayoutError> {
         if size == 0 {
             return Err(LayoutError::ZeroSize);
