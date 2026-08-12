@@ -12,3 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SizeClassError {
+    SizeTooLarge,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Size {
+    index: u16
+}
+
